@@ -1,0 +1,4 @@
+user=SEU_USUARIO
+password=SUA_SENHA
+dburl=jdbc:mysql://localhost:3306/SEU_BANCO
+useSSL=false

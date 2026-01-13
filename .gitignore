@@ -28,3 +28,6 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+### Arquivos com informacoes sigilosas ###
+db.properties
