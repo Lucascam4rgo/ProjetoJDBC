@@ -10,7 +10,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SellerDaoJDBC implements SellerDAO {
 
@@ -55,11 +58,9 @@ public class SellerDaoJDBC implements SellerDAO {
                 return instantiateSeller(rs, dep);
             }
             return null;
-        }
-        catch (SQLException sql) {
+        } catch (SQLException sql) {
             throw new dbException(sql.getMessage());
-        }
-        finally {
+        } finally {
             DB.closeStatement(ps);
             DB.closeRS(rs);
         }
@@ -89,5 +90,47 @@ public class SellerDaoJDBC implements SellerDAO {
     @Override
     public List<Seller> findAll() {
         return List.of();
+    }
+
+    @Override
+    public List<Seller> findByDepartment(Department dep) {
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+
+            ps = conn.prepareStatement("SELECT seller.*, department.name as depName " +
+                    "from seller INNER JOIN department on seller.departmentID = department.id " +
+                    "where department.id = ? " +
+                    "order by name");
+
+            ps.setInt(1, dep.getId());
+
+            rs = ps.executeQuery();
+
+            List<Seller> list = new ArrayList<>();
+            Map<Integer, Department> map = new HashMap<>();
+
+            while (rs.next()) {
+
+                Department dept = map.get(rs.getInt("departmentID"));
+
+                if (dept == null) {
+                    dept = instantiateDepartment(rs);
+                    map.put(rs.getInt("departmentID"), dept);
+                }
+
+                Seller sel = instantiateSeller(rs, dept);
+                list.add(sel);
+
+            }
+            return list;
+
+        } catch (SQLException sql) {
+            throw new dbException(sql.getMessage());
+        }
+        finally {
+            DB.closeStatement(ps);
+            DB.closeRS(rs);
+        }
     }
 }
