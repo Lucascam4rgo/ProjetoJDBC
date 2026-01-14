@@ -6,10 +6,7 @@ import model.dao.SellerDAO;
 import model.entities.Department;
 import model.entities.Seller;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +22,37 @@ public class SellerDaoJDBC implements SellerDAO {
 
     @Override
     public void insert(Seller obj) {
+
+        PreparedStatement ps = null;
+
+        try {
+            ps = conn.prepareStatement("insert into seller (name, email, birthdate, " +
+                    "baseSalary, departmentID) values " +
+                    "(?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+
+            ps.setString(1, obj.getName());
+            ps.setString(2, obj.getEmail());
+            ps.setDate(3, new Date(obj.getBirthDate().getTime()));
+            ps.setDouble(4, obj.getBaseSalary());
+            ps.setInt(5, obj.getDepartment().getId());
+
+            int rowsAffected = ps.executeUpdate();
+
+            if (rowsAffected > 0) {
+                ResultSet rs = ps.getGeneratedKeys();
+
+                if (rs.next()) {
+                    int idGenerated = rs.getInt(1);
+                    obj.setId(idGenerated);
+                }
+            }
+            else {
+                throw new dbException("Unexpected error! No rows affected");
+            }
+
+        } catch (SQLException sql) {
+            throw new dbException(sql.getMessage());
+        }
 
     }
 
